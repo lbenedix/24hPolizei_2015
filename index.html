@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>#24hPolizei @lbenedix</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width; maximum-scale=1; minimum-scale=1;">
+    <link rel="stylesheet" href="css/kube.min.css" />
+    <style type="text/css">
+            /* CSS Mini Reset http://www.vcarrer.com/2010/05/css-mini-reset.html */
+            html, body, div, form, fieldset, legend, label{margin: 0;padding: 0; }
+            /*html{overflow-y: scroll;}*/
+            table{border-collapse: collapse;border-spacing: 0;}
+            th, td{text-align: left;vertical-align: top;}
+            h1, h2, h3, h4, h5, h6, th, td, caption { font-weight:normal; }
+            img { border: 0; }
+
+            body{ padding:1em; }
+            #karte{text-align: right;}
+            #tweets .listWrapper{ overflow-y:auto; max-height:80vh;margin-top: 1em;}
+            #tweets > div > ul > li { border: 1px solid #333; margin-top: 0.5em; padding: 0.5em; border-radius: 0.3em;list-style-type: none;}
+            a { text-decoration: none; }
+            #socialshareprivacy > ul > li.settings_info.down{display:none;}
+            polygon{fill:transparent;cursor:pointer;}
+            ul{ margin:0px;}
+            svg{max-height: 90%;max-width: 100%;}
+            #title{ display: inline; }
+            #num{ float: right;}
+            @media only screen and (max-width: 767px) {
+                #tweets .listWrapper{
+                    max-height:80%;
+                }
+                #socialshareprivacy{
+                    display:none;
+                }
+            }
+
+    </style>
+
+</head>
+<body>
+
+    <a href="https://github.com/lbenedix/24hPolizei"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/121cd7cbdc3e4855075ea8b558508b91ac463ac2/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_green_007200.png"></a>
+    <div class="units-row">
+        <div class="unit-70">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 790" xml:space="preserve"></svg>
+        </div>
+        <div class="unit-30">
+            <div>
+                <p class="input-groups unit-push-right" >
+                    <input id="search_input" type="text" name="go" placeholder="Search" />
+                    <span class="btn-append">
+                        <button id="search_btn" class="btn btn-blue" style="width: 12em;">Alle durchsuchen</button>
+                    </span>
+                </p>
+                <h2 id="title"></h2><span id="num"></span>
+            </div>
+
+            <div class="units-row" id="tweets">
+                <h3 id="info">
+                    Klicke auf einen Bezirk, um die entsprechenden Tweets aus der <a href="https://twitter.com/hashtag/24hPolizei">#24hPolizei</a> Aktion zu sehen, oder durchsuche alle Tweets nach einem Stichwort.
+                </h3>
+                <div class="listWrapper">
+                    <ul>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="position:fixed;bottom:-1.1em;right:0px;padding-right:142px;background: white;width:100%;">
+                <div id="socialshareprivacy" style="float:right;"></div>
+                <div style="position:fixed; bottom:0em; right:0em;">
+                    <a href="mailto:lb@bombenlabor.de"><img src="lb.png" /></a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script>
+
+    <script type="text/javascript" src="js/jquery.socialshareprivacy.min.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(function($){
+            if($('#socialshareprivacy').length > 0){
+                $('#socialshareprivacy').socialSharePrivacy({
+                                                                services : {
+                                                                    facebook : {
+                                                                        'status' : 'on'
+                                                                    }
+                                                                },
+                                                                "alignment": "horizontal",
+                                                                "switch_alignment":"right",
+                                                                "css_path"  : "css/socialshareprivacy.css",
+                                                                "lang_path" : "socialshareprivacy/lang/",
+                                                                "language"  : "de",
+                                                                'cookie_domain' : 'lb.bomenlabor.de'
+                                                            });
+            }
+        });
+    </script>
+
+
+    <script>
+        Number.prototype.map = function ( in_min , in_max , out_min , out_max ) {
+            return ( this - in_min ) * ( out_max - out_min ) / ( in_max - in_min ) + out_min;
+        }
+
+        String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+
+        String.prototype.endsWith = function(suffix) { return this.indexOf(suffix, this.length - suffix.length) !== -1; };
+
+
+        var tweets = [];
+        var bezirke_mapping = {'CharlottenburgNord':'Charlottenburg Nord', 'Spandau':'Spandau', 'StadtrandsiedlungMalchow':'Stadtrandsiedlung Malchow', 'Altglienicke':'Altglienicke', 'Adlershof':'Adlershof', 'Dahlem':'Dahlem', 'Tiergarten':'Tiergarten', 'FalkenhagenerFeld':'Falkenhagener Feld', 'Wilhelmstadt':'Wilhelmstadt', 'Rahnsdorf':'Rahnsdorf','Rahnsdorf1':'Rahnsdorf', 'Tegel':'Tegel', 'Rosenthal':'Rosenthal', 'Britz':'Britz', 'AltTreptow':'Alt-Treptow', 'Charlottenburg':'Charlottenburg', 'Heiligensee':'Heiligensee', 'Mitte':'Mitte', 'Kreuzberg':'Kreuzberg', 'Zehlendorf':'Zehlendorf', 'Steglitz':'Steglitz', 'Gesundbrunnen':'Gesundbrunnen', 'Wannsee':'Wannsee', 'Wannsee1':'Wannsee', 'Nikolassee':'Nikolassee', 'Luebars':'Lübars', 'Haselhorst':'Haselhorst', 'Koepenick':'Köpenick', 'Malchow':'Malchow', 'Baumschulenweg':'Baumschulenweg', 'Wedding':'Wedding', 'Gruenau':'Grünau', 'Blankenburg':'Blankenburg', 'Lichtenberg':'Lichtenberg', 'Siemensstadt':'Siemensstadt', 'Karlshorst':'Karlshorst', 'PrenzlauerBerg':'Prenzlauer Berg', 'Pankow':'Pankow', 'Bohnsdorf':'Bohnsdorf', 'Hermsdorf':'Hermsdorf', 'Lankwitz':'Lankwitz', 'Wartenberg':'Wartenberg', 'Schoeneberg':'Schöneberg', 'Hansaviertel':'Hansaviertel', 'Plaenterwald':'Plänterwalt', 'Neukoelln':'Neukölln', 'Wilmersdorf':'Wilmersdorf', 'Moabit':'Moabit', 'Staaken':'Staaken', 'Hakenfelde':'Hakenfelde', 'Rudow':'Rudow', 'Marienfelde':'Marienfelde', 'Wittenau':'Wittenau', 'Reinickendorf':'Reinickendorf', 'Schmargendorf':'Schmargendorf', 'Kladow':'Kladow', 'Grunewald':'Grunewald', 'Niederschoeneweide':'Niederschöneweide', 'Karow':'Karow', 'Friedrichshain':'Friedrichshain', 'FranzoesischBuchholz':'Französisch Buchholz', 'Frohnau':'Frohnau', 'Mueggelheim':'Müggelheim', 'Niederschoenhausen':'Niederschönhausen', 'Oberschoeneweide':'Oberschöneweide', 'Lichterfelde':'Lichterfelde', 'Mariendorf':'Mariendorf', 'Wilhelmsruh':'Wilhelmsruh', 'Konradshoehe':'Konradshöhe', 'Biesdorf':'Biesdorf', 'Rummelsburg':'Rummelsburg', 'Lichtenrade':'Lichtenrade', 'Westend':'Westend', 'Waidmannslust':'Waidmannslust', 'Halensee':'Halensee', 'Friedrichshagen':'Friedrichshagen', 'Buch':'Buch', 'MaerkischesViertel':'Märkisches Viertel', 'Falkenberg':'Falkenberg', 'Fennpfuhl':'Fennpfuhl', 'Gropiusstadt':'Gropiusstadt', 'Tempelhof':'Tempelhof', 'NeuHohenschoenhausen':'Neu Hohenschönhausen', 'Blankenfelde':'Blankenfelde', 'Johannisthal':'Johannisthal', 'Schmoeckwitz':'Schmöckwitz', 'Friedenau':'Friedenau', 'Heinersdorf':'Heinersdorf', 'Gatow':'Gatow', 'Mahlsdorf':'Mahlsdorf', 'Hellersdorf':'Hellersdorf', 'Kaulsdorf':'Kaulsdorf', 'Marzahn':'Marzahn', 'Friedrichsfelde':'Friedrichsfelde', 'AltHohenschoenhausen':'Alt Hohenschönhausen', 'Weissensee':'Weißensee', 'Buckow':'Buckow', 'Buckow1':'Buckow', 'Buckow_1':'Buckow', 'undefined':' '};
+
+        var max_heat = 0;
+
+        function get_heatmap( list_of_tweets ){
+            var heat_map = {};
+            /* initialize heat_map with zeros */
+            $.each(bezirke_mapping, function(index, value){
+                heat_map[index] = 0
+            });
+
+            max_heat = 0;
+            $.each(list_of_tweets, function(index, tweet){
+                if(tweet.bezirk  !== ""){
+                    if(tweet.bezirk in heat_map){
+                        heat_map[tweet.bezirk] += 1;
+                        if( heat_map[tweet.bezirk] > max_heat ){
+                            max_heat = heat_map[tweet.bezirk];
+                        }
+                    }
+                }
+            });
+
+            /* map results to a scale from 0 to 0.9 for opacity */
+            $.each(heat_map, function(index, heat){
+                heat_map[index] = heat.map(0,max_heat,0,.9);
+            });
+
+            return heat_map;
+        }
+
+        function paint_map( list_of_tweets ){
+            heat_map = get_heatmap(list_of_tweets);
+            /* color the districts */
+            $.each(bezirke_mapping, function(key, value){
+                var bezirk = $('.'+key);
+                var heat = heat_map[key];
+                bezirk.css( 'fill', '#E87B0C' );
+                bezirk.css( 'fill-opacity', heat );
+                bezirk.css( 'stroke', '#003399' );
+                bezirk.css( 'stroke-width', '.125' );
+            });
+        }
+
+        function render_tweets( list_of_tweets ){
+            $('#tweets ul').html('');
+            $.each( list_of_tweets, function( key, tweet ) {
+                $('#tweets ul').append(
+                        '<li>'+
+                        '<div>'+
+                        '<div style="float: left;font-weight:bold;">'+bezirke_mapping[tweet.bezirk]+'</div>'+
+                        '<span style="float: right;font-size:smaller"><a href="https://twitter.com/PolizeiBerlin_E/status/'+tweet['id']+'" target="_blank">'+moment(tweet['time'], 'YYYYMMDDHHmmss' ).format('HH:mm - DD.MM.YYYY')+'</a></span>' +
+                        '</div>' +
+                        '<div style="clear: both;">' + tweet['text'] + '</div>' +
+                        '</li>'
+                );
+            });
+            if( list_of_tweets.length == 1 ){
+                $('#num').text(list_of_tweets.length+' Einsatz');
+            }else{
+                $('#num').text(list_of_tweets.length+' Einsätze');
+            }
+
+        }
+
+        function search(query) {
+            if(query.length==0){
+                console.log('search, empty query');
+                $('#info' ).show();
+                $('#title' ).html('&nbsp;');
+                $('#num' ).html('&nbsp;');
+                $('#tweets ul').html('');
+                window.location.hash = '';
+                $.each(bezirke_mapping, function(bezirk_key, bezirk_value){
+                    var bezirk = $('#'+bezirk_key);
+                    bezirk.css( 'fill', '#E87B0C' );
+                    bezirk.attr( 'fill-opacity', heatmap[bezirk_key] );
+                });
+            }else{
+                var result_tweets = [];
+
+                $('#info' ).hide();
+                $('#title' ).text(query);
+                $('#num' ).text('');
+                $('#tweets ul').html('');
+                window.location.hash = '';
+
+                $.each( tweets, function( key, tweet ) {
+                    if( tweet.text.toLowerCase().contains(query.toLowerCase()) ){
+
+                        /* clone tweet*/
+                        var tmp_tweet = {};
+                        jQuery.extend(tmp_tweet,tweet);
+                        
+                        console.log(tmp_tweet);
+                        
+                        if( tmp_tweet.bezirk.length == 0 ){
+                            tmp_tweet.bezirk = "undefined";
+                        }
+
+                        /* highlight search terms */
+                        var words = [];
+                        var str = tweet.text.split(" ");
+                        $(str).each(function(key, value){
+                            if(value.toLowerCase().contains(query.toLowerCase())){
+                                words.push('<mark>'+value+'</mark>');
+                            }else{
+                                words.push(value);
+                            }
+                        });
+                        tmp_tweet.text = words.join(' ');
+                        result_tweets.push(tmp_tweet);
+                    }
+                });
+
+                paint_map(result_tweets);
+                render_tweets(result_tweets);
+            }
+        };
+
+        function filter_tweets_by_bezirk( bezirk ){
+            var result_tweets = [];
+            $.each( tweets, function( key, tweet ) {
+                if(tweet.bezirk == bezirk ){
+                    result_tweets.push(tweet);
+                }
+            });
+            return result_tweets;
+        }
+
+        var initial_heatmap = get_heatmap( tweets );
+
+
+        $( document ).ready(function() {
+
+            /*$.get( "tweets.json", function( data ) {*/
+                /*tweets = $.parseJSON(data);*/
+
+            $.getJSON( "tweets.json", function( data ) {
+                tweets = data;                
+
+
+                $('svg').load('Berliner_Bezirke.svg', function() {
+
+                    /* add search function to inputbox and button */
+                    $('#search_btn' ).click(function(){ search($('#search_input').val()); });
+                    $("#search_input").keyup(function(event){ if(event.keyCode == 13){ $("#search_btn").click(); } });
+
+                    paint_map(tweets);
+
+                    $.each(bezirke_mapping, function(bezirk_key, bezirk_value){
+
+                        var bezirk = $('#'+bezirk_key);
+
+                        bezirk.hover(  function() {
+                                           if(bezirk_key.endsWith('1')){ bezirk_key=bezirk_key.substring(0, bezirk_key.length - 1); }
+                                           if(bezirk_key !== active_bezirk){
+                                               $( '.'+bezirk_key ).css( 'stroke', 'blue' );
+                                               $( '.'+bezirk_key ).css( 'stroke-width', '1' );
+                                            }
+                                       }, function() {
+                                           if(bezirk_key.endsWith('1')){ bezirk_key=bezirk_key.substring(0, bezirk_key.length - 1); }
+                                           if(bezirk_key !== active_bezirk){
+                                               $( '.'+bezirk_key ).css( 'stroke', '#003399' );
+                                               $( '.'+bezirk_key ).css( 'stroke-width', '.125' );
+                                            }
+                                         }
+                        );
+                        bezirk.click(function(){
+                            /* hack for buckow, wannsee and rahnsdorf */
+                            if(bezirk_key.endsWith('1')){ bezirk_key=bezirk_key.substring(0, bezirk_key.length - 1); }
+
+                            $("html, body").animate({ scrollTop: 0 }, "fast");
+                            $('#info' ).hide();
+                            $('#search_input' ).val('');
+                            active_bezirk = bezirk_key;
+                            window.location.hash = bezirk_key;
+                            $('#title' ).text(bezirke_mapping[bezirk_key]);
+                            var bezirk_tweets = filter_tweets_by_bezirk( bezirk_key );
+                            paint_map(tweets);
+                            render_tweets(bezirk_tweets);
+                            $( '.'+bezirk_key ).css( 'fill','blue' );
+                            $( '.'+bezirk_key ).css( 'stroke', 'blue' );
+                            $( '.'+bezirk_key ).css( 'stroke-width', '1' );
+                        });
+                    });
+
+                    /* get bezirk from url hash */
+                    var active_bezirk = window.location.hash.replace("#", "");
+                    /* click this bezirk */
+                    if(active_bezirk.length>0){
+                        $('#'+active_bezirk ).click();
+                    }
+                });
+            });
+        });
+
+
+        window.addEventListener("popstate", function(e) {
+            if( window.location.hash.length > 0){
+                $( window.location.hash ).click();
+            }else{
+                paint_map(tweets);
+                if( $('#search_input' ).val().length == 0 ){
+                    console.log('popstate');
+                    $('#info' ).show();
+                    $('#tweets ul').html('');
+                    $('#title' ).html('&nbsp;');
+                    $('#num' ).html('&nbsp;');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
+
+
