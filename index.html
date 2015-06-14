@@ -166,7 +166,7 @@
                         '<li>'+
                         '<div>'+
                         '<div style="float: left;font-weight:bold;">'+bezirke_mapping[tweet.bezirk]+'</div>'+
-                        '<span style="float: right;font-size:smaller"><a href="https://twitter.com/PolizeiBerlin_E/status/'+tweet['id']+'" target="_blank">'+moment(tweet['time'], 'YYYYMMDDHHmmss' ).format('HH:mm - DD.MM.YYYY')+'</a></span>' +
+                        '<span style="float: right;font-size:smaller"><a href="'+tweet['url']+'" target="_blank">'+moment(tweet['time'], 'YYYYMMDDHHmmss' ).format('HH:mm - DD.MM.YYYY')+'</a></span>' +
                         '</div>' +
                         '<div style="clear: both;">' + tweet['text'] + '</div>' +
                         '</li>'
